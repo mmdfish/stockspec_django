@@ -13,7 +13,7 @@ Python 3.6
 Requirements:
 
 pandas==0.23.4
-Django==2.2.2
+Django==3.0.5
 django-cors-headers==3.2.1
 
 
