@@ -24,7 +24,7 @@ def spec(request):
         orderbyvalue = "abs(" + specname + ")"
     print(specname, order, isAbs, orderbyvalue)
     cx = sqlite3.connect(common.db_path)
-    sql_cmd = "SELECT * FROM stock_spec where date=(select max(date) from stock_spec) and " + specname + " != 'NaN' order by " + orderbyvalue + " " + order + " limit 0,50"
+    sql_cmd = "SELECT * FROM stock_spec where date=(select max(date) from stock_spec) and (code like 'sh.60%' or code like 'sh.688%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " != 'NaN' order by " + orderbyvalue + " " + order + " limit 0,100"
     
     result = pd.read_sql(sql=sql_cmd, con=cx)
     df_json = result.to_json(orient = 'table', force_ascii = False)
