@@ -20,4 +20,5 @@ urlpatterns = [
     path('', views.index),
     path('spec/', views.spec),
     path('dayk/', views.dayk),
+    path('hs300spec/', views.hs300spec),
 ]
