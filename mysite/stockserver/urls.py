@@ -21,4 +21,5 @@ urlpatterns = [
     path('spec/', views.spec),
     path('dayk/', views.dayk),
     path('hs300spec/', views.hs300spec),
+    path('qualification/', views.qualification),
 ]

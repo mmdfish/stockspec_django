@@ -40,6 +40,7 @@ def dayk(request):
     sql_cmd = "SELECT * FROM stock_day_k where code='" + codename +"' order by date desc limit 0,500"
     
     result = pd.read_sql(sql=sql_cmd, con=cx)
+
     df_json = result.to_json(orient = 'table', force_ascii = False)
     data = json.loads(df_json)
 
@@ -55,6 +56,19 @@ def hs300spec(request):
     print(specname, order, isAbs, orderbyvalue)
     cx = sqlite3.connect(common.db_path)
     sql_cmd = "SELECT * FROM stock_hs300_spec where date=(select max(date) from stock_hs300_spec) order by " + orderbyvalue  + " " + order
+    
+    result = pd.read_sql(sql=sql_cmd, con=cx)
+    df_json = result.to_json(orient = 'table', force_ascii = False)
+    data = json.loads(df_json)
+
+    return JsonResponse(data, safe=False)
+
+def qualification(request):
+    specname = request.GET.get('specname', 'macd_cross_above')
+    value = request.GET.get('value', 1)
+    print(specname, value)
+    cx = sqlite3.connect(common.db_path)
+    sql_cmd = "SELECT * FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value)
     
     result = pd.read_sql(sql=sql_cmd, con=cx)
     df_json = result.to_json(orient = 'table', force_ascii = False)
