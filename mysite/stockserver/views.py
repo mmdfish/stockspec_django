@@ -66,6 +66,33 @@ def hs300spec(request):
 def qualification(request):
     specname = request.GET.get('specname', 'macd_cross_above')
     value = request.GET.get('value', 1)
+    pageIndex = request.GET.get('page', 0)
+    print(specname, value, pageIndex)
+    cx = sqlite3.connect(common.db_path)
+
+    pageIndex = int(pageIndex)
+    totalNum = -1
+    if pageIndex == 0:
+        sql_cmd = "SELECT count(*) FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value)
+        cursor = cx.execute(sql_cmd)
+        result = cursor.fetchone()
+        totalNum = result[0]
+
+    startIndex = pageIndex * 100
+    stopIndex = pageIndex * 100 + 99
+    sql_cmd = "SELECT * FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value) + " limit " + str(startIndex) + "," + str(stopIndex)
+    
+    result = pd.read_sql(sql=sql_cmd, con=cx)
+    df_json = result.to_json(orient = 'table', force_ascii = False)
+    data = json.loads(df_json)
+
+    data["total"] = totalNum
+
+    return JsonResponse(data, safe=False)
+
+def qualification2(request):
+    specname = request.GET.get('specname', 'macd_cross_above')
+    value = request.GET.get('value', 1)
     print(specname, value)
     cx = sqlite3.connect(common.db_path)
     sql_cmd = "SELECT * FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value)
