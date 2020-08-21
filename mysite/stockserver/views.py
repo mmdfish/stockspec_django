@@ -79,9 +79,8 @@ def qualification(request):
         totalNum = result[0]
 
     startIndex = pageIndex * 100
-    stopIndex = pageIndex * 100 + 99
-    sql_cmd = "SELECT * FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value) + " limit " + str(startIndex) + "," + str(stopIndex)
-    
+    step = 99
+    sql_cmd = "SELECT * FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value) + " limit " + str(startIndex) + "," + str(step)
     result = pd.read_sql(sql=sql_cmd, con=cx)
     df_json = result.to_json(orient = 'table', force_ascii = False)
     data = json.loads(df_json)
