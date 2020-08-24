@@ -4,10 +4,11 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 import json 
+from . import common
 
 def index(request):
     sql_cmd = "SELECT * FROM allstock limit 0,10"
-    cx = sqlite3.connect(r'D:\codes\python\stock\mystock.db')
+    cx = sqlite3.connect(common.db_path)
     result = pd.read_sql(sql=sql_cmd, con=cx)
     df_json = result.to_json(orient = 'table', force_ascii = False)
     data = json.loads(df_json)
@@ -22,8 +23,8 @@ def spec(request):
     if isAbs == 'true':
         orderbyvalue = "abs(" + specname + ")"
     print(specname, order, isAbs, orderbyvalue)
-    cx = sqlite3.connect(r'D:\codes\python\stock\mystock.db')
-    sql_cmd = "SELECT * FROM stock_spec where date=(select max(date) from stock_spec) and " + specname + " != 'NaN' order by " + orderbyvalue + " " + order + " limit 0,50"
+    cx = sqlite3.connect(common.db_path)
+    sql_cmd = "SELECT * FROM stock_spec where date=(select max(date) from stock_spec) and (code like 'sh.60%' or code like 'sh.688%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " != 'NaN' order by " + orderbyvalue + " " + order + " limit 0,100"
     
     result = pd.read_sql(sql=sql_cmd, con=cx)
     df_json = result.to_json(orient = 'table', force_ascii = False)
@@ -35,8 +36,65 @@ def dayk(request):
     codename = request.GET.get('code', 'sh.000001')
     order = 'desc'
     print(codename, order)
-    cx = sqlite3.connect(r'D:\codes\python\stock\mystock.db')
-    sql_cmd = "SELECT * FROM stock_day_k where code='" + codename +"' order by date desc limit 0,365"
+    cx = sqlite3.connect(common.db_path)
+    sql_cmd = "SELECT * FROM stock_day_k where code='" + codename +"' order by date desc limit 0,500"
+    
+    result = pd.read_sql(sql=sql_cmd, con=cx)
+
+    df_json = result.to_json(orient = 'table', force_ascii = False)
+    data = json.loads(df_json)
+
+    return JsonResponse(data, safe=False)
+
+def hs300spec(request):
+    specname = request.GET.get('specname', 'trendgap_y')
+    order = request.GET.get('order', 'desc')
+    isAbs = request.GET.get('abs', 'false')
+    orderbyvalue = specname
+    if isAbs == 'true':
+        orderbyvalue = "abs(" + specname + ")"
+    print(specname, order, isAbs, orderbyvalue)
+    cx = sqlite3.connect(common.db_path)
+    sql_cmd = "SELECT * FROM stock_hs300_spec where date=(select max(date) from stock_hs300_spec) order by " + orderbyvalue  + " " + order
+    
+    result = pd.read_sql(sql=sql_cmd, con=cx)
+    df_json = result.to_json(orient = 'table', force_ascii = False)
+    data = json.loads(df_json)
+
+    return JsonResponse(data, safe=False)
+
+def qualification(request):
+    specname = request.GET.get('specname', 'macd_cross_above')
+    value = request.GET.get('value', 1)
+    pageIndex = request.GET.get('page', 0)
+    print(specname, value, pageIndex)
+    cx = sqlite3.connect(common.db_path)
+
+    pageIndex = int(pageIndex)
+    totalNum = -1
+    if pageIndex == 0:
+        sql_cmd = "SELECT count(*) FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value)
+        cursor = cx.execute(sql_cmd)
+        result = cursor.fetchone()
+        totalNum = result[0]
+
+    startIndex = pageIndex * 100
+    step = 99
+    sql_cmd = "SELECT * FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value) + " limit " + str(startIndex) + "," + str(step)
+    result = pd.read_sql(sql=sql_cmd, con=cx)
+    df_json = result.to_json(orient = 'table', force_ascii = False)
+    data = json.loads(df_json)
+
+    data["total"] = totalNum
+
+    return JsonResponse(data, safe=False)
+
+def qualification2(request):
+    specname = request.GET.get('specname', 'macd_cross_above')
+    value = request.GET.get('value', 1)
+    print(specname, value)
+    cx = sqlite3.connect(common.db_path)
+    sql_cmd = "SELECT * FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value)
     
     result = pd.read_sql(sql=sql_cmd, con=cx)
     df_json = result.to_json(orient = 'table', force_ascii = False)
