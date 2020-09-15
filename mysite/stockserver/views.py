@@ -70,6 +70,25 @@ def qualification(request):
     print(specname, value, pageIndex)
     cx = sqlite3.connect(common.db_path)
 
+    if specname == "rebound":
+        pageIndex = int(pageIndex)
+        totalNum = -1
+        sql_cmd = "select DISTINCT date from stock_qualification order by date desc limit 0,5"
+        cursor = cx.execute(sql_cmd)
+        result = cursor.fetchall()
+        date1 = result[0][0]
+        date2 = result[4][0]
+        
+        sql_cmd = "SELECT * FROM stock_qualification where (dayk_desc_3 = '1' or cross_up_ma10 = '1') and date='" + date1 +"' and code in (SELECT code FROM stock_qualification where \
+                (ma5_10 = '1' and (date>='" + date2 + "' and date<='" + date1 + "')) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%'))"
+        result = pd.read_sql(sql=sql_cmd, con=cx)
+        df_json = result.to_json(orient = 'table', force_ascii = False)
+        data = json.loads(df_json)
+
+        data["total"] = totalNum
+
+        return JsonResponse(data, safe=False)
+
     pageIndex = int(pageIndex)
     totalNum = -1
     if pageIndex == 0:
@@ -86,18 +105,5 @@ def qualification(request):
     data = json.loads(df_json)
 
     data["total"] = totalNum
-
-    return JsonResponse(data, safe=False)
-
-def qualification2(request):
-    specname = request.GET.get('specname', 'macd_cross_above')
-    value = request.GET.get('value', 1)
-    print(specname, value)
-    cx = sqlite3.connect(common.db_path)
-    sql_cmd = "SELECT * FROM stock_qualification where date=(select max(date) from stock_qualification) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%') and " + specname + " = " + str(value)
-    
-    result = pd.read_sql(sql=sql_cmd, con=cx)
-    df_json = result.to_json(orient = 'table', force_ascii = False)
-    data = json.loads(df_json)
 
     return JsonResponse(data, safe=False)
