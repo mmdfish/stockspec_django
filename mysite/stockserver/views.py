@@ -78,9 +78,17 @@ def qualification(request):
         result = cursor.fetchall()
         date1 = result[0][0]
         date2 = result[4][0]
-        
-        sql_cmd = "SELECT * FROM stock_qualification where (dayk_desc_3 = '1' or cross_up_ma10 = '1') and date='" + date1 +"' and code in (SELECT code FROM stock_qualification where \
+        if pageIndex == 0:
+            sql_cmd = "SELECT * FROM stock_qualification where (dayk_desc_3 = '2' or cross_up_ma10 = '1') and date='" + date1 +"' and code in (SELECT code FROM stock_qualification where \
                 (ma5_10 = '1' and (date>='" + date2 + "' and date<='" + date1 + "')) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%'))"
+            cursor = cx.execute(sql_cmd)
+            result = cursor.fetchone()
+            totalNum = result[0]
+
+        startIndex = pageIndex * 100
+        step = 99
+        sql_cmd = "SELECT * FROM stock_qualification where (dayk_desc_3 = '2' or cross_up_ma10 = '1') and date='" + date1 +"' and code in (SELECT code FROM stock_qualification where \
+                (ma5_10 = '1' and (date>='" + date2 + "' and date<='" + date1 + "')) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%')) limit " + str(startIndex) + "," + str(step)
         result = pd.read_sql(sql=sql_cmd, con=cx)
         df_json = result.to_json(orient = 'table', force_ascii = False)
         data = json.loads(df_json)
