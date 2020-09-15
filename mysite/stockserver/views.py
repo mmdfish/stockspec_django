@@ -79,7 +79,7 @@ def qualification(request):
         date1 = result[0][0]
         date2 = result[4][0]
         if pageIndex == 0:
-            sql_cmd = "SELECT * FROM stock_qualification where (dayk_desc_3 = '2' or cross_up_ma10 = '1') and date='" + date1 +"' and code in (SELECT code FROM stock_qualification where \
+            sql_cmd = "SELECT count(*) FROM stock_qualification where (dayk_desc_3 = '2' or cross_up_ma10 = '1') and date='" + date1 +"' and code in (SELECT code FROM stock_qualification where \
                 (ma5_10 = '1' and (date>='" + date2 + "' and date<='" + date1 + "')) and (code like 'sh.6%' or code like 'sz.00%' or code like 'sz.300%'))"
             cursor = cx.execute(sql_cmd)
             result = cursor.fetchone()
